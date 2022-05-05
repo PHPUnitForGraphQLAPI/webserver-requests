@@ -13,31 +13,39 @@ trait ModifyPluginSettingsWebserverRequestTestCaseTrait
     use RequestRESTAPIWordPressAuthenticatedUserWebserverRequestTestTrait;
     use ExecuteRESTWebserverRequestTestCaseTrait;
 
+    protected mixed $previousValue;
+
+    /**
+     * Execute a REST API to update the client path before the test
+     */
     protected function modifyPluginSettingsSetUp(): void
     {
         /**
-         * Execute a REST API to update the client path before the test
+         * First obtain and cache the previous value,
+         * so it can be retrieved via REST
+         * (before the modifications is carried out)
          */
-        $dataName = $this->dataName();
-        $data = $this->getProvidedData();
-        $newValue = $this->getPluginSettingsNewValue($data);
-        $this->executeRESTEndpointToUpdatePluginSettings($dataName, $newValue);
+        $this->previousValue = $this->getPluginSettingsOriginalValue();
+        $this->executeRESTEndpointToUpdatePluginSettings(
+            $this->dataName(),
+            $this->getPluginSettingsNewValue(),
+        );
     }
 
-    abstract protected function getPluginSettingsNewValue(array $data): mixed;
+    abstract protected function getPluginSettingsNewValue(): mixed;
 
+    /**
+     * Execute a REST API to restore the client path after the test
+     */
     protected function modifyPluginSettingsTearDown(): void
     {
-        /**
-         * Execute a REST API to restore the client path after the test
-         */
-        $dataName = $this->dataName();
-        $data = $this->getProvidedData();
-        $previousValue = $this->getPluginSettingsOriginalValue($data);
-        $this->executeRESTEndpointToUpdatePluginSettings($dataName, $previousValue);
+        $this->executeRESTEndpointToUpdatePluginSettings(
+            $this->dataName(),
+            $this->previousValue,
+        );
     }
 
-    abstract protected function getPluginSettingsOriginalValue(array $data): mixed;
+    abstract protected function getPluginSettingsOriginalValue(): mixed;
 
     protected function executeRESTEndpointToUpdatePluginSettings(
         string $dataName,
